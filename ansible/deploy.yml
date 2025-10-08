@@ -31,9 +31,10 @@
     - name: Run container
       community.docker.docker_container:
         name: scientific_calculator
-        image: chandrimanandi/calculator:latest
+        image: calculator:latest
         state: started
         restart_policy: always
         tty: yes
         interactive: yes
         command: python ./calculator.py
+
