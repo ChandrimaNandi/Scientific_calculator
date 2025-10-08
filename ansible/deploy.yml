@@ -16,11 +16,11 @@
         name: docker
         state: present
 
-    - name: Pull image from Docker Hub
+    - name: Use local Docker image
       community.docker.docker_image:
-        name: chandrimanandi/calculator
+        name: calculator
         tag: latest
-        source: pull
+        source: local
 
     - name: Stop and remove existing container if present
       community.docker.docker_container:
