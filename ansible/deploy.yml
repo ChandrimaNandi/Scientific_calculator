@@ -1,40 +1,28 @@
 ---
 - name: Deploy Calculator container locally
   hosts: local
-  become: true
-  collections:
-    - community.docker
   tasks:
-    # - name: Ensure docker is installed
-    #   apt:
-    #     name: docker.io
-    #     state: present
-    #     update_cache: no
-
-    - name: Ensure python docker SDK is present for Ansible modules
+    - name: Ensure Docker Python SDK is installed
       pip:
         name: docker
-        state: present
+        executable: pip3
 
-    - name: Use local Docker image
-      community.docker.docker_image:
-        name: calculator
+    - name: Pull Docker image from Docker Hub
+      docker_image:
+        name: chandrimanandi/calculator
         tag: latest
-        source: local
+        source: pull
 
-    - name: Stop and remove existing container if present
-      community.docker.docker_container:
-        name: scientific_calculator
+    - name: Stop and remove existing container
+      docker_container:
+        name: calculator
         state: absent
-        force_kill: yes
 
-    - name: Run container
-      community.docker.docker_container:
-        name: scientific_calculator
-        image: calculator:latest
+    - name: Run the Calculator container
+      docker_container:
+        name: calculator
+        image: chandrimanandi/calculator:latest
         state: started
         restart_policy: always
-        tty: yes
-        interactive: yes
-        command: python ./calculator.py
-
+        ports:
+          - "8080:8080"

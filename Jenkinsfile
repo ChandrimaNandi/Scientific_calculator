@@ -1,41 +1,63 @@
 pipeline {
-  agent any
-  environment {
-    DOCKERHUB_REPO = "chandrimanandi/calculator"
-    IMAGE_TAG = "${env.BUILD_ID}"
-  }
-  stages {
-    stage('Checkout') {
-      steps { checkout scm }
+    agent any
+    environment {
+        DOCKERHUB_REPO = "chandrimanandi/calculator"
+        IMAGE_TAG = "${env.BUILD_ID}"
     }
-    stage('Install & Test') {
-      steps {
-        sh 'python3 -m pip install --upgrade pip'
-        sh 'pip install -r requirements.txt'
-        sh 'pytest -q'
-      }
-    }
-    stage('Build Docker') {
-      steps {
-        sh 'docker build -t ${DOCKERHUB_REPO}:${IMAGE_TAG} .'
-      }
-    }
-    stage('Login to DockerHub') {
-      steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-          sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+    stages {
+        stage('Checkout') {
+            steps { 
+                checkout scm 
+            }
         }
-      }
+
+        stage('Build & Test') {
+            steps {
+                // Build project and run tests using Maven
+                sh 'mvn clean test'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t ${DOCKERHUB_REPO}:${IMAGE_TAG} .'
+            }
+        }
+
+        stage('Login to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                }
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                sh 'docker push ${DOCKERHUB_REPO}:${IMAGE_TAG}'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh 'ansible-playbook -i ansible/inventory.ini ansible/deploy.yml'
+            }
+        }
     }
-    stage('Push Image') {
-      steps {
-        sh 'docker push ${DOCKERHUB_REPO}:${IMAGE_TAG}'
-      }
+
+    post {
+        success {
+            mail to: 'you@example.com',
+                 subject: "Pipeline Success: ${currentBuild.fullDisplayName}",
+                 body: "Maven + Docker + Ansible pipeline succeeded!"
+        }
+        failure {
+            mail to: 'you@example.com',
+                 subject: "Pipeline Failed: ${currentBuild.fullDisplayName}",
+                 body: "Pipeline failed! Check Jenkins logs."
+        }
+        always {
+            sh 'docker images | head -n 20'
+        }
     }
-  }
-  post {
-    always {
-      sh 'docker images | head -n 20'
-    }
-  }
 }

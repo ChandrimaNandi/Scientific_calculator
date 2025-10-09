@@ -1,19 +1,26 @@
-# Use a small Python base image
-FROM python:3.11-slim
+# Use official Maven image with Java 17
+FROM maven:3.9.2-eclipse-temurin-17 AS build
 
-# Set working dir
+# Set working directory
 WORKDIR /app
 
-# Copy requirements and install
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy pom.xml and source code
+COPY pom.xml .
+COPY src ./src
 
-# Copy app and tests
-COPY calculator.py .
-COPY tests/ ./tests
+# Build the project
+RUN mvn clean package -DskipTests
 
-# Make the CLI executable
-RUN chmod +x calculator.py
+# Use a smaller Java runtime for final image
+FROM eclipse-temurin:17-jre
 
-# Default command - run the calculator interactively
-CMD ["python", "./calculator.py"]
+WORKDIR /app
+
+# Copy built jar from build stage
+COPY --from=build /app/target/calculator-1.0-SNAPSHOT.jar ./calculator.jar
+
+# Expose port if needed (optional)
+EXPOSE 8080
+
+# Command to run the jar
+ENTRYPOINT ["java", "-jar", "calculator.jar"]
