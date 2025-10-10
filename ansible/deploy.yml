@@ -1,4 +1,4 @@
-- name: Deploy Calculator container locally
+- name: Deploy Java Calculator container locally
   hosts: localhost
   gather_facts: yes
 
@@ -14,7 +14,7 @@
         tag: "{{ lookup('env','BUILD_ID') }}"
         source: pull
 
-    - name: Run Calculator container
+    - name: Run Java Calculator container
       docker_container:
         name: calculator
         image: "chandrimanandi/calculator:{{ lookup('env','BUILD_ID') }}"
@@ -22,3 +22,4 @@
         restart_policy: always
         ports:
           - "9090:8080"
+        command: "java -jar /app/calculator.jar"
