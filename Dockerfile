@@ -16,11 +16,10 @@ FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
-# Copy built jar from build stage
-COPY --from=build /app/target/calculator-1.0-SNAPSHOT.jar ./calculator.jar
+# Copy built fat jar from build stage
+COPY --from=build /app/target/calculator-fat.jar ./calculator.jar
 
-# Expose port if needed (optional)
-EXPOSE 8080
-
-# Command to run the jar
+# Command to run jar
 ENTRYPOINT ["java", "-jar", "calculator.jar"]
+
+
