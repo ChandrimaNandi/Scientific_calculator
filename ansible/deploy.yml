@@ -19,7 +19,6 @@
         name: calculator
         image: "chandrimanandi/calculator:{{ lookup('env','BUILD_ID') }}"
         state: started
-        restart_policy: always
         ports:
           - "9090:8080"
         command: "java -jar /app/calculator.jar"
