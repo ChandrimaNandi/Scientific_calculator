@@ -22,8 +22,7 @@ public class Calculator {
     public static double power(double x, double b) {
         return Math.pow(x, b);
     }
-    // Comment added during viva to trigger build
-    // Comment added during viva to trigger build 1
+    // Comment added
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         while (true) {
